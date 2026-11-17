@@ -127,6 +127,8 @@ chat, AI matching and payments.
 ```
 StudentLostFound/
 ├── app.py                  # App factory, models, validation, all routes
+├── vercel.json             # Vercel Python function settings
+├── .vercelignore           # Excludes local/runtime-only files from builds
 ├── requirements.txt        # Python dependencies
 ├── test_app.py             # Automated tests (42 tests)
 ├── README.md               # This file
@@ -214,6 +216,25 @@ tables are created automatically the first time the app starts. Press
 > The app runs with Flask's debug mode on, which is convenient while
 > demonstrating (changes reload instantly). Turn it off before showing the app
 > to anyone outside your machine.
+
+---
+
+## Deploying on Vercel
+
+The root `app.py` exports the Flask application Vercel detects. Import this
+GitHub repository in Vercel with the project root left at the repository root;
+no custom build command or output directory is needed.
+
+Set `SECRET_KEY` in Vercel's environment variables before the first deployment.
+The app refuses to start on Vercel without it. For data that must survive
+deployments and function restarts, also set `DATABASE_URL` to a PostgreSQL
+database. The included PostgreSQL driver supports `postgres://` and
+`postgresql://` URLs.
+
+If `DATABASE_URL` is omitted, Vercel uses SQLite in `/tmp` for a short demo.
+That database is temporary and may reset between function instances. Uploaded
+photos also use `/tmp` on Vercel, so they are temporary. Use durable object
+storage for photos before relying on the portal for real campus reports.
 
 ---
 

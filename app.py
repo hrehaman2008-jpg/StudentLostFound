@@ -73,10 +73,20 @@ from functools import wraps
 
 import click
 
-from flask import Flask, current_app, flash, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
+from sqlalchemy import inspect
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -169,7 +179,10 @@ class ItemReport(db.Model):
         """Public URL of the photograph, or None if the file is missing."""
         path = self.image_path
         if path and os.path.isfile(path):
-            return url_for("static", filename="uploads/reports/" + os.path.basename(self.image_filename))
+            filename = os.path.basename(self.image_filename)
+            if current_app.config.get("VERCEL_RUNTIME"):
+                return url_for("report_image", filename=filename)
+            return url_for("static", filename="uploads/reports/" + filename)
         return None
 
     # "author" is the student who created the report; User.reports is the list.
@@ -263,17 +276,17 @@ def _ensure_user_columns():
     keep is_admin = 0 and is_active = 1, so nobody is ever promoted by the
     migration itself.
     """
-    rows = db.session.execute(db.text("PRAGMA table_info(user)")).fetchall()
-    if not rows:
+    inspector = inspect(db.engine)
+    if not inspector.has_table("user"):
         return
-    columns = {row[1] for row in rows}
+    columns = {column["name"] for column in inspector.get_columns("user")}
     if "is_admin" not in columns:
         db.session.execute(
-            db.text("ALTER TABLE user ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0")
+            db.text('ALTER TABLE "user" ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT FALSE')
         )
     if "is_active" not in columns:
         db.session.execute(
-            db.text("ALTER TABLE user ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1")
+            db.text('ALTER TABLE "user" ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE')
         )
     db.session.commit()
 
@@ -284,8 +297,8 @@ def _ensure_notification_schema():
     Idempotent: existing databases are upgraded in place, and running this on
     every start never adds anything twice.
     """
-    rows = db.session.execute(db.text("PRAGMA table_info(notification)")).fetchall()
-    if not rows:
+    inspector = inspect(db.engine)
+    if not inspector.has_table("notification"):
         Notification.__table__.create(db.engine, checkfirst=True)
     db.session.execute(
         db.text(
@@ -303,8 +316,8 @@ def _ensure_claim_schema():
     explicitly so an older database that was created before Phase 8 is
     upgraded safely. Running it any number of times changes nothing.
     """
-    rows = db.session.execute(db.text("PRAGMA table_info(claim)")).fetchall()
-    if not rows:
+    inspector = inspect(db.engine)
+    if not inspector.has_table("claim"):
         Claim.__table__.create(db.engine, checkfirst=True)
     # One claim per student per report, whatever the table came from.
     db.session.execute(
@@ -324,10 +337,10 @@ def _ensure_image_column():
     column is added only when it is really missing, so starting the app many
     times is safe and no data is ever touched.
     """
-    rows = db.session.execute(db.text("PRAGMA table_info(item_report)")).fetchall()
-    if not rows:
+    inspector = inspect(db.engine)
+    if not inspector.has_table("item_report"):
         return
-    columns = {row[1] for row in rows}
+    columns = {column["name"] for column in inspector.get_columns("item_report")}
     if "image_filename" not in columns:
         db.session.execute(
             db.text("ALTER TABLE item_report ADD COLUMN image_filename VARCHAR(120)")
@@ -340,10 +353,18 @@ def _ensure_image_column():
 
 def create_app(test_config=None):
     """Create and configure the Flask application."""
+    is_vercel = bool(os.environ.get("VERCEL"))
+    instance_path = os.environ.get("INSTANCE_PATH")
+    if not instance_path:
+        instance_path = (
+            "/tmp/student_lost_found_instance"
+            if is_vercel
+            else os.path.join(BASE_DIR, "instance")
+        )
     app = Flask(
         __name__,
         instance_relative_config=True,
-        instance_path=os.path.join(BASE_DIR, "instance"),
+        instance_path=instance_path,
     )
 
     # Ensure the instance folder exists so the SQLite database file
@@ -360,15 +381,37 @@ def create_app(test_config=None):
     # Windows (cmd):    set SECRET_KEY=your-random-secret
     # Windows (PS):     $env:SECRET_KEY="your-random-secret"
     # Linux/macOS:      export SECRET_KEY=your-random-secret
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-insecure-secret-key-change-me")
+    secret_key = os.environ.get("SECRET_KEY")
+    if is_vercel and not secret_key:
+        raise RuntimeError("Set SECRET_KEY in the Vercel project environment before deploying.")
+    app.config["SECRET_KEY"] = secret_key or "dev-only-insecure-secret-key-change-me"
+    app.config["SESSION_COOKIE_SECURE"] = is_vercel
 
-    # SQLite database: instance/lost_found.db (created automatically).
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + DATABASE_PATH
+    # Local development keeps SQLite. Vercel can use DATABASE_URL for durable
+    # PostgreSQL; /tmp is only a non-persistent fallback for short demos.
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif database_url and database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    if not database_url:
+        database_path = "/tmp/student_lost_found.db" if is_vercel else DATABASE_PATH
+        database_url = "sqlite:///" + database_path
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["VERCEL_RUNTIME"] = is_vercel
 
-    # Uploaded photographs live in their own folder inside static/ so Flask
-    # can serve them. Tests may point this at a temporary folder.
-    app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "static", "uploads", "reports")
+    # Vercel's filesystem is read-only apart from temporary /tmp storage.
+    # Use it for a demo; production uploads need durable object storage.
+    upload_folder = os.environ.get("UPLOAD_FOLDER")
+    if not upload_folder:
+        upload_folder = (
+            "/tmp/student_lost_found_uploads"
+            if is_vercel
+            else os.path.join(BASE_DIR, "static", "uploads", "reports")
+        )
+    app.config["UPLOAD_FOLDER"] = upload_folder
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     # Hard cap for a whole request (5 MB photo plus the normal form fields).
     app.config["MAX_CONTENT_LENGTH"] = 6 * 1024 * 1024
 
@@ -391,6 +434,12 @@ def create_app(test_config=None):
         _ensure_notification_schema()
 
     register_routes(app)
+
+    if is_vercel:
+        @app.route("/uploads/reports/<path:filename>")
+        def report_image(filename):
+            return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
     return app
 
 
