@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Admin claims &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="mb-4">
+            <span class="badge text-bg-dark mb-2">Administrator</span>
+            <h1 class="h3 fw-bold mb-1"><i class="bi bi-hand-index-thumb me-2"></i>Claims overview</h1>
+            <p class="text-muted mb-0">
+                Monitor every claim in the portal. Decisions stay with the report owners.
+            </p>
+        </div>
+
+        {% include "_admin_tabs.html" %}
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <a href="{{ url_for('admin_claims') }}"
+               class="btn btn-sm {% if status == 'All' %}btn-accent{% else %}btn-outline-secondary{% endif %}">
+                All
+                <span class="badge text-bg-light text-dark ms-1">{{ counts.Pending + counts.Approved + counts.Rejected }}</span>
+            </a>
+            {% for state in statuses %}
+            <a href="{{ url_for('admin_claims', status=state) }}"
+               class="btn btn-sm {% if status == state %}btn-accent{% else %}btn-outline-secondary{% endif %}">
+                {{ state }}
+                <span class="badge text-bg-light text-dark ms-1">{{ counts[state] }}</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        {% if claims %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle admin-table admin-table--claims mb-0">
+                        <caption class="visually-hidden">All claims, read only</caption>
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Item</th>
+                                <th scope="col">Claimant</th>
+                                <th scope="col">Report owner</th>
+                                <th scope="col">Explanation</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims %}
+                            <tr>
+                                <td class="fw-semibold">{{ claim.report.title }}</td>
+                                <td class="small">{{ claim.claimant.name }}</td>
+                                <td class="small">{{ claim.report.author.name }}</td>
+                                <td class="small text-muted admin-explanation">{{ claim.message }}</td>
+                                <td>{% include "_claim_badge.html" %}</td>
+                                <td class="small text-muted">{{ claim.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase-note mt-4">
+            <i class="bi bi-eye me-1"></i>
+            Administrators can only monitor claims. Approving or rejecting stays with the student
+            who posted the report.
+        </div>
+        {% else %}
+        <div class="card empty-state border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="feature-icon mx-auto"><i class="bi bi-inbox"></i></div>
+                <h2 class="h5 fw-bold mt-3 mb-2">No claims here</h2>
+                <p class="text-muted mb-0">
+                    {% if status != 'All' %}
+                    There are no {{ status|lower }} claims right now. Try another filter.
+                    {% else %}
+                    Claims will appear here as soon as students start claiming found items.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

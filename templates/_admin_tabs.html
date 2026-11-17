@@ -1,0 +1,32 @@
+<nav class="admin-tabs-nav mb-4" aria-label="Administration sections">
+    <ul class="nav nav-pills admin-tabs">
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}"
+               href="{{ url_for('admin_dashboard') }}"
+               {% if request.endpoint == 'admin_dashboard' %}aria-current="page"{% endif %}>
+                <i class="bi bi-speedometer2 me-1"></i>Overview
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}"
+               href="{{ url_for('admin_users') }}"
+               {% if request.endpoint == 'admin_users' %}aria-current="page"{% endif %}>
+                <i class="bi bi-people me-1"></i>Users
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'admin_reports' %}active{% endif %}"
+               href="{{ url_for('admin_reports') }}"
+               {% if request.endpoint == 'admin_reports' %}aria-current="page"{% endif %}>
+                <i class="bi bi-shield-exclamation me-1"></i>Reports
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'admin_claims' %}active{% endif %}"
+               href="{{ url_for('admin_claims') }}"
+               {% if request.endpoint == 'admin_claims' %}aria-current="page"{% endif %}>
+                <i class="bi bi-hand-index-thumb me-1"></i>Claims
+            </a>
+        </li>
+    </ul>
+</nav>

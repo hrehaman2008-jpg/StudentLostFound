@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Home &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<header class="hero py-5">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <span class="badge text-bg-accent mb-3 px-3 py-2">Phase {{ PHASE }} &middot; Search, Filter &amp; Reunite</span>
+                <h1 class="display-4 fw-bold mb-3">Student Lost &amp; Found Portal</h1>
+                <p class="lead mb-4">
+                    A single campus place to report lost items, share found items and help
+                    classmates get their belongings back. Search every report, filter by type,
+                    category or status, and mark your own items as returned once they are home.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-accent btn-lg px-4">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                    <a href="{{ url_for('browse') }}" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-search me-2"></i>Search reports
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-accent btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-person-plus me-2"></i>Register
+                    </a>
+                    <a href="{{ url_for('browse') }}" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-search me-2"></i>Search reports
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card hero-card border-0 shadow-lg">
+                    <div class="card-body p-4">
+                        <h2 class="h5 card-title mb-3"><i class="bi bi-mortarboard me-2"></i>How it works</h2>
+                        <ul class="list-unstyled mb-0 hero-steps">
+                            <li class="d-flex mb-3">
+                                <span class="step-num">1</span>
+                                <span>Create your student account and sign in.</span>
+                            </li>
+                            <li class="d-flex mb-3">
+                                <span class="step-num">2</span>
+                                <span>Report a lost item or post something you found on campus.</span>
+                            </li>
+                            <li class="d-flex mb-3">
+                                <span class="step-num">3</span>
+                                <span>Search and filter reports from every student to find a match.</span>
+                            </li>
+                            <li class="d-flex">
+                                <span class="step-num">4</span>
+                                <span>Mark your report as returned once the item is back with its owner.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Features -->
+<section id="features" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Portal Features</h2>
+            <p class="text-muted mb-0">Everything below is live in the portal today.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-person-plus"></i></div>
+                        <h3 class="h5 mt-3 mb-2">Student Accounts</h3>
+                        <p class="text-muted small mb-2">Register and log in securely.</p>
+                        <span class="badge text-bg-success">Available now</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-envelope-exclamation"></i></div>
+                        <h3 class="h5 mt-3 mb-2">Report Items</h3>
+                        <p class="text-muted small mb-2">Post lost and found items.</p>
+                        <span class="badge text-bg-success">Available now</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-search"></i></div>
+                        <h3 class="h5 mt-3 mb-2">Search &amp; Filters</h3>
+                        <p class="text-muted small mb-2">Search by item, description or place; filter by type, category and status.</p>
+                        <span class="badge text-bg-success">Available now</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-check2-circle"></i></div>
+                        <h3 class="h5 mt-3 mb-2">Mark Returned</h3>
+                        <p class="text-muted small mb-2">Close your own report when reunited.</p>
+                        <span class="badge text-bg-success">Available now</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

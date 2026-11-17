@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}My claims &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1"><i class="bi bi-hand-index-thumb me-2"></i>My claims</h1>
+                <p class="text-muted mb-0">
+                    Items you have asked to collect, {{ current_user.name }}.
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('browse', report_type='Found') }}" class="btn btn-outline-navy px-3">
+                    <i class="bi bi-search me-1"></i>Find found items
+                </a>
+                <a href="{{ url_for('incoming_claims') }}" class="btn btn-outline-secondary px-3">
+                    <i class="bi bi-inbox me-1"></i>Claims on my items
+                </a>
+            </div>
+        </div>
+
+        <div class="mb-4 d-flex flex-wrap align-items-center gap-2">
+            <span class="badge text-bg-info">
+                Pending: {{ claims | selectattr('status', 'equalto', 'Pending') | list | length }}
+            </span>
+            <span class="badge text-bg-success">
+                Approved: {{ claims | selectattr('status', 'equalto', 'Approved') | list | length }}
+            </span>
+            <span class="badge text-bg-danger">
+                Rejected: {{ claims | selectattr('status', 'equalto', 'Rejected') | list | length }}
+            </span>
+        </div>
+
+        {% if claims %}
+        <div class="row g-4">
+            {% for claim in claims %}
+            <div class="col-lg-6">
+                <div class="card claim-card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+
+                        <div class="d-flex gap-3">
+                            {% if claim.report.image_url %}
+                            <img src="{{ claim.report.image_url }}" class="claim-thumb"
+                                 alt="Photograph of {{ claim.report.title }}">
+                            {% else %}
+                            <div class="claim-thumb claim-thumb-empty" role="img"
+                                 aria-label="No photograph for {{ claim.report.title }}">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            {% endif %}
+
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <h2 class="h6 fw-bold mb-1">{{ claim.report.title }}</h2>
+                                    {% include "_claim_badge.html" %}
+                                </div>
+                                <p class="small text-muted mb-1">
+                                    <span class="badge text-bg-secondary me-1">{{ claim.report.category }}</span>
+                                    <i class="bi bi-geo-alt me-1"></i>{{ claim.report.location }}
+                                </p>
+                                <p class="small text-muted mb-0">
+                                    <i class="bi bi-clock me-1"></i>Sent
+                                    {{ claim.created_at.strftime('%d %b %Y, %H:%M') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="claim-message small mt-3 mb-2">{{ claim.message }}</p>
+
+                        <p class="small mb-0">
+                            {% if claim.status == 'Approved' %}
+                            <i class="bi bi-check2-circle text-success me-1"></i>
+                            The owner approved your claim &mdash; arrange a handover with them.
+                            {% elif claim.status == 'Rejected' %}
+                            <i class="bi bi-x-circle text-danger me-1"></i>
+                            The owner rejected this claim.
+                            {% else %}
+                            <i class="bi bi-hourglass-split text-navy me-1"></i>
+                            Waiting for the owner to decide.
+                            {% endif %}
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card empty-state border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="feature-icon mx-auto"><i class="bi bi-hand-index-thumb"></i></div>
+                <h2 class="h5 fw-bold mt-3 mb-2">You have not claimed anything yet</h2>
+                <p class="text-muted mb-4">
+                    When you see something you found on the Browse page that belongs to you, open its
+                    card and choose <strong>Claim Item</strong>. Your claims and the owner's decision
+                    will appear here.
+                </p>
+                <a href="{{ url_for('browse', report_type='Found') }}" class="btn btn-accent btn-lg px-4">
+                    <i class="bi bi-search me-2"></i>Browse found items
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Admin reports &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="mb-4">
+            <span class="badge text-bg-dark mb-2">Administrator</span>
+            <h1 class="h3 fw-bold mb-1"><i class="bi bi-shield-exclamation me-2"></i>Report moderation</h1>
+            <p class="text-muted mb-0">
+                Every report in the portal. Removing one also removes its photo, its claims and
+                any notifications about it.
+            </p>
+        </div>
+
+        {% include "_admin_tabs.html" %}
+
+        {% if reports %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle admin-table admin-table--wide mb-0">
+                        <caption class="visually-hidden">Every report with moderation actions</caption>
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Photo</th>
+                                <th scope="col">Item</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Owner</th>
+                                <th scope="col">Location</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Status</th>
+                                <th scope="col" class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td>
+                                    {% if report.image_url %}
+                                    <img src="{{ report.image_url }}" class="claim-thumb admin-photo"
+                                         alt="Photograph of {{ report.title }}">
+                                    {% else %}
+                                    <div class="claim-thumb claim-thumb-empty" role="img"
+                                         aria-label="No photograph for {{ report.title }}">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold">{{ report.title }}</td>
+                                <td>
+                                    <span class="badge {% if report.report_type == 'Lost' %}text-bg-danger{% else %}text-bg-success{% endif %}">
+                                        {{ report.report_type }}
+                                    </span>
+                                </td>
+                                <td class="small">{{ report.author.name }}</td>
+                                <td class="small text-muted">{{ report.location }}</td>
+                                <td class="small text-muted">{{ report.date_lost_found.strftime('%d %b %Y') }}</td>
+                                <td>
+                                    {% if report.status == 'Active' %}
+                                    <span class="badge text-bg-warning">Active</span>
+                                    {% else %}
+                                    <span class="badge text-bg-primary">Returned</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <form method="post"
+                                          action="{{ url_for('admin_delete_report', item_id=report.id) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Remove this report permanently? Its photo, claims and notifications will be deleted too.');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash me-1"></i>Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card empty-state border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="feature-icon mx-auto"><i class="bi bi-journal-x"></i></div>
+                <h2 class="h5 fw-bold mt-3 mb-2">No reports to moderate</h2>
+                <p class="text-muted mb-0">When students post items they will appear here for review.</p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

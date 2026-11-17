@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Admin users &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="mb-4">
+            <span class="badge text-bg-dark mb-2">Administrator</span>
+            <h1 class="h3 fw-bold mb-1"><i class="bi bi-people me-2"></i>User management</h1>
+            <p class="text-muted mb-0">
+                {{ users|length }} account{{ '' if users|length == 1 else 's' }} &middot;
+                {{ active_admins }} active administrator{{ '' if active_admins == 1 else 's' }}.
+            </p>
+        </div>
+
+        {% include "_admin_tabs.html" %}
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle admin-table mb-0">
+                        <caption class="visually-hidden">All portal accounts with role and status</caption>
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Student</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Registered</th>
+                                <th scope="col">Account</th>
+                                <th scope="col">Role</th>
+                                <th scope="col" class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td class="fw-semibold">
+                                    {{ user.name }}
+                                    {% if user.id == current_user.id %}<span class="badge text-bg-secondary ms-1">You</span>{% endif %}
+                                </td>
+                                <td class="text-muted small text-nowrap">{{ user.email }}</td>
+                                <td class="text-muted small">{{ user.created_at.strftime('%d %b %Y') }}</td>
+                                <td>
+                                    {% if user.is_active %}
+                                    <span class="badge text-bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge text-bg-secondary">Deactivated</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_admin %}
+                                    <span class="badge text-bg-dark">Administrator</span>
+                                    {% else %}
+                                    <span class="badge text-bg-light text-dark">Student</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if user.id == current_user.id %}
+                                    <span class="small text-muted">This is you</span>
+                                    {% else %}
+                                    <form method="post"
+                                          action="{{ url_for('admin_toggle_user', user_id=user.id) }}"
+                                          class="d-inline"
+                                          {% if user.is_active %}onsubmit="return confirm('Deactivate this account? They will not be able to log in until you reactivate it.');"{% endif %}>
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        {% if user.is_active %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-person-slash me-1"></i>Deactivate
+                                        </button>
+                                        {% else %}
+                                        <button type="submit" class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-person-check me-1"></i>Reactivate
+                                        </button>
+                                        {% endif %}
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="phase-note mt-4">
+            <i class="bi bi-shield-lock me-1"></i>
+            Deactivating never deletes an account or its reports, claims or notifications.
+            Administrators cannot deactivate themselves, and the last active administrator
+            can never be deactivated.
+        </div>
+
+    </div>
+</section>
+{% endblock %}

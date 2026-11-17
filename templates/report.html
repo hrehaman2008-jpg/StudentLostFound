@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Report an item &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+
+                <div class="card auth-card border-0 shadow-lg">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="text-center mb-4">
+                            <div class="auth-icon mx-auto"><i class="bi bi-megaphone"></i></div>
+                            <h1 class="h3 fw-bold mt-3 mb-1">Report an item</h1>
+                            <p class="text-muted mb-2">
+                                Posting as <strong>{{ current_user.name }}</strong>.
+                            </p>
+                            <span class="badge text-bg-warning">Phase {{ PHASE }} &middot; New report</span>
+                        </div>
+
+                        <form method="post" action="{{ url_for('report') }}"
+                              enctype="multipart/form-data" novalidate>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            <p class="form-required-note">
+                                <span class="required-mark" aria-hidden="true">*</span>
+                                Required field
+                            </p>
+
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Item name <span class="required-mark" aria-hidden="true">*</span></label>
+                                <input type="text" class="form-control" id="title" name="title"
+                                       placeholder="e.g. Black wireless earbuds" maxlength="120"
+                                       value="{{ form.get('title', '') }}" required>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label d-block">Report type <span class="required-mark" aria-hidden="true">*</span></label>
+                                    {% for type in report_types %}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="report_type"
+                                               id="type_{{ loop.index }}" value="{{ type }}"
+                                               {% if form.get('report_type') == type %}checked{% endif %} required>
+                                        <label class="form-check-label" for="type_{{ loop.index }}">
+                                            {% if type == 'Lost' %}<i class="bi bi-question-circle me-1"></i>{% else %}<i class="bi bi-box-seam me-1"></i>{% endif %}{{ type }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="category" class="form-label">Category <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="" disabled {% if not form.get('category') %}selected{% endif %}>
+                                            Choose a category&hellip;
+                                        </option>
+                                        {% for cat in categories %}
+                                        <option value="{{ cat }}" {% if form.get('category') == cat %}selected{% endif %}>
+                                            {{ cat }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description <span class="required-mark" aria-hidden="true">*</span></label>
+                                <textarea class="form-control" id="description" name="description" rows="4"
+                                          placeholder="Colour, brand, contents, distinguishing marks&hellip;"
+                                          required>{{ form.get('description', '') }}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="image" class="form-label">
+                                    Photograph <span class="text-muted fw-normal">(optional)</span>
+                                </label>
+                                <input class="form-control file-input" type="file" id="image" name="image"
+                                       accept="image/jpeg,image/png,image/webp" aria-describedby="image-hint">
+                                <div class="form-text" id="image-hint">
+                                    JPG, PNG or WEBP &middot; up to 5 MB. A clear photo helps other students
+                                    recognise the item.
+                                </div>
+                                <img id="image-preview" class="form-photo-preview mt-3" hidden
+                                     alt="Preview of the photograph you selected">
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-sm-7">
+                                    <label for="location" class="form-label">Location <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="text" class="form-control" id="location" name="location"
+                                           placeholder="e.g. Library, 2nd floor" maxlength="120"
+                                           value="{{ form.get('location', '') }}" required>
+                                </div>
+                                <div class="col-sm-5">
+                                    <label for="date_lost_found" class="form-label">Date <span class="required-mark" aria-hidden="true">*</span></label>
+                                    <input type="date" class="form-control" id="date_lost_found"
+                                           name="date_lost_found" value="{{ form.get('date_lost_found', '') }}" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions form-actions-row">
+                                <button type="submit" class="btn btn-accent btn-lg flex-fill">
+                                    <i class="bi bi-send me-2"></i>Post report
+                                </button>
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-navy btn-lg flex-fill">
+                                    <i class="bi bi-x-lg me-1"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+
+                        <div class="phase-note mt-4">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Reports are visible to every student on the Browse page. Your contact details
+                            are never shown &mdash; only your name.
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var input = document.getElementById('image');
+    var preview = document.getElementById('image-preview');
+    var hint = document.getElementById('image-hint');
+    var MAX_BYTES = 5 * 1024 * 1024;
+    var defaultHint = hint ? hint.textContent : '';
+    if (!input || !preview) { return; }
+
+    input.addEventListener('change', function () {
+        preview.hidden = true;
+        preview.removeAttribute('src');
+        if (hint) {
+            hint.textContent = defaultHint;
+            hint.classList.remove('text-danger');
+        }
+        if (!input.files || !input.files.length) { return; }
+
+        var file = input.files[0];
+        if (file.size > MAX_BYTES) {
+            if (hint) {
+                hint.textContent = 'That image is larger than 5 MB. Please choose a smaller photograph.';
+                hint.classList.add('text-danger');
+            }
+            input.value = '';
+            return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function (event) {
+            preview.src = event.target.result;
+            preview.hidden = false;
+        };
+        reader.readAsDataURL(file);
+    });
+})();
+</script>
+{% endblock %}

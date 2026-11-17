@@ -1,0 +1,3 @@
+# Keeps the instance/ directory in version control.
+# The SQLite database file (Phase 2) will be created here and is
+# ignored by .gitignore — never commit the local database.

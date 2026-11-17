@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Admin overview &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <span class="badge text-bg-dark mb-2">Administrator</span>
+                <h1 class="h3 fw-bold mb-1"><i class="bi bi-speedometer2 me-2"></i>Admin overview</h1>
+                <p class="text-muted mb-0">Live totals for the whole portal, {{ current_user.name }}.</p>
+            </div>
+            <a href="{{ url_for('browse') }}" class="btn btn-outline-navy px-3">
+                <i class="bi bi-grid me-1"></i>Student view
+            </a>
+        </div>
+
+        {% include "_admin_tabs.html" %}
+
+        <!-- Statistics (all values come straight from the database) -->
+        <div class="row g-3 g-lg-4 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-people"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.students }}</h2>
+                        <p class="text-muted small mb-0">Total students</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-question-circle"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.lost }}</h2>
+                        <p class="text-muted small mb-0">Lost reports</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-box-seam"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.found }}</h2>
+                        <p class="text-muted small mb-0">Found reports</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-broadcast"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.active }}</h2>
+                        <p class="text-muted small mb-0">Active reports</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-check2-circle"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.returned }}</h2>
+                        <p class="text-muted small mb-0">Returned reports</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-hand-index-thumb"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.claims }}</h2>
+                        <p class="text-muted small mb-0">Total claims</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-hourglass-split"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.pending }}</h2>
+                        <p class="text-muted small mb-0">Pending claims</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card feature-card admin-stat h-100 border-0 shadow-sm">
+                    <div class="card-body p-3 p-sm-4 text-center">
+                        <div class="feature-icon"><i class="bi bi-bell"></i></div>
+                        <h2 class="h4 fw-bold mt-3 mb-0">{{ stats.notifications }}</h2>
+                        <p class="text-muted small mb-0">Notifications sent</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card admin-activity border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h2 class="h6 fw-bold mb-3"><i class="bi bi-person-plus me-1"></i>Newest students</h2>
+                        {% if recent_users %}
+                        <ul class="list-unstyled small mb-0">
+                            {% for user in recent_users %}
+                            <li class="mb-3">
+                                <div class="fw-semibold">{{ user.name }}</div>
+                                <div class="text-muted">{{ user.email }}</div>
+                                <div class="text-muted">
+                                    {{ user.created_at.strftime('%d %b %Y') }}
+                                    {% if user.is_admin %}<span class="badge text-bg-dark ms-1">Admin</span>{% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small mb-0">No students yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card admin-activity border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h2 class="h6 fw-bold mb-3"><i class="bi bi-journal-text me-1"></i>Newest reports</h2>
+                        {% if recent_reports %}
+                        <ul class="list-unstyled small mb-0">
+                            {% for report in recent_reports %}
+                            <li class="mb-3">
+                                <a href="{{ url_for('admin_reports') }}" class="fw-semibold text-decoration-none">
+                                    {{ report.title }}
+                                </a>
+                                <span class="badge {% if report.report_type == 'Lost' %}text-bg-danger{% else %}text-bg-success{% endif %}">
+                                    {{ report.report_type }}
+                                </span>
+                                <div class="text-muted">
+                                    {{ report.location }} &middot; {{ report.author.name }}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small mb-0">No reports yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card admin-activity border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h2 class="h6 fw-bold mb-3"><i class="bi bi-hand-index-thumb me-1"></i>Newest claims</h2>
+                        {% if recent_claims %}
+                        <ul class="list-unstyled small mb-0">
+                            {% for claim in recent_claims %}
+                            <li class="mb-3">
+                                <a href="{{ url_for('admin_claims') }}" class="fw-semibold text-decoration-none">
+                                    {{ claim.report.title }}
+                                </a>
+                                {% include "_claim_badge.html" %}
+                                <div class="text-muted">
+                                    {{ claim.claimant.name }} &middot;
+                                    {{ claim.created_at.strftime('%d %b %Y') }}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small mb-0">No claims yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

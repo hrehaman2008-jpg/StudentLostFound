@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Register &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="auth-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+
+                <div class="card auth-card border-0 shadow-lg">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="text-center mb-4">
+                            <div class="auth-icon mx-auto"><i class="bi bi-person-plus"></i></div>
+                            <h1 class="h3 fw-bold mt-3 mb-1">Create your account</h1>
+                            <p class="text-muted mb-2">Join the portal with your college email.</p>
+                            <span class="badge text-bg-warning">Phase {{ PHASE }} &middot; Secure registration</span>
+                        </div>
+
+                        <form method="post" action="{{ url_for('register') }}" novalidate>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full name <span class="required-mark" aria-hidden="true">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                           placeholder="e.g. Aditya Sharma" autocomplete="name" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">College email <span class="required-mark" aria-hidden="true">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           placeholder="you@college.edu" autocomplete="email" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password <span class="required-mark" aria-hidden="true">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password"
+                                           placeholder="Choose a password" autocomplete="new-password" required>
+                                </div>
+                                <div class="form-text">Minimum 8 characters. Stored only as a hash.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="confirm_password" class="form-label">Confirm password <span class="required-mark" aria-hidden="true">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                           placeholder="Repeat your password" autocomplete="new-password" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-accent w-100 btn-lg">Create account</button>
+                        </form>
+
+                        <p class="text-center small text-muted mt-4 mb-0">
+                            Already registered?
+                            <a href="{{ url_for('login') }}" class="text-decoration-none fw-semibold">Sign in</a>
+                        </p>
+
+                        <div class="phase-note mt-4">
+                            <i class="bi bi-shield-check me-1"></i>
+                            Your password is hashed with Werkzeug before it is saved &mdash;
+                            never stored as plain text.
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

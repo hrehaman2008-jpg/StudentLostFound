@@ -1,0 +1,105 @@
+{# Shared card for a single item report. Expects: item #}
+{% set is_owner = current_user.is_authenticated and current_user.id == item.user_id %}
+{% set photo = item.image_url %}
+<div class="card feature-card report-card h-100 border-0 shadow-sm report-type-{{ item.report_type|lower }}{% if item.status == 'Returned' %} report-returned{% endif %}">
+    {% if photo %}
+    <img src="{{ photo }}" class="card-img-top report-photo"
+         alt="Photograph of {{ item.title }}" loading="lazy">
+    {% else %}
+    <div class="report-photo report-photo-placeholder" role="img"
+         aria-label="No photograph provided for {{ item.title }}">
+        <i class="bi bi-image"></i>
+        <span>No photograph</span>
+    </div>
+    {% endif %}
+
+    <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+            <h3 class="h5 fw-bold mb-0">{{ item.title }}</h3>
+            <span class="badge flex-shrink-0
+                {% if item.report_type == 'Lost' %}text-bg-danger{% else %}text-bg-success{% endif %}">
+                {% if item.report_type == 'Lost' %}
+                <i class="bi bi-question-circle me-1"></i>Lost
+                {% else %}
+                <i class="bi bi-box-seam me-1"></i>Found
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="mb-3">
+            <span class="badge text-bg-secondary me-1">{{ item.category }}</span>
+            {% if item.status == 'Active' %}
+            <span class="badge text-bg-warning"><i class="bi bi-broadcast me-1"></i>Active</span>
+            {% else %}
+            <span class="badge text-bg-primary"><i class="bi bi-check2-circle me-1"></i>Returned</span>
+            {% endif %}
+        </div>
+
+        <p class="report-description small text-muted mb-3">{{ item.description }}</p>
+
+        <ul class="list-unstyled small text-muted mb-0 report-meta">
+            <li class="mb-1">
+                <i class="bi bi-geo-alt me-2 text-navy"></i>{{ item.location }}
+            </li>
+            <li class="mb-1">
+                <i class="bi bi-calendar3 me-2"></i>{{ item.date_lost_found.strftime('%d %b %Y') }}
+            </li>
+            <li>
+                <i class="bi bi-person me-2"></i>Reported by {{ item.author.name }}
+            </li>
+        </ul>
+
+        {# Claim action: only other students, only active Found reports. #}
+        {% if current_user.is_authenticated and not is_owner
+              and item.report_type == 'Found' and item.status == 'Active' %}
+        {% set my_claim = item.claims | selectattr('claimant_id', 'equalto', current_user.id) | list | first %}
+        <div class="report-actions mt-auto pt-3">
+            {% if my_claim %}
+            <span class="badge text-bg-info w-100 py-2">
+                <i class="bi bi-hourglass-split me-1"></i>Your claim is {{ my_claim.status | lower }}
+            </span>
+            {% else %}
+            <a href="{{ url_for('claim_report', item_id=item.id) }}"
+               class="btn btn-accent btn-sm w-100">
+                <i class="bi bi-hand-index-thumb me-1"></i>Claim Item
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if is_owner %}
+        <div class="report-actions mt-auto pt-3">
+            {% if item.claims %}
+            <a href="{{ url_for('incoming_claims') }}" class="btn btn-outline-navy btn-sm w-100 mb-2">
+                <i class="bi bi-inbox me-1"></i>View claims ({{ item.claims|length }})
+            </a>
+            {% endif %}
+
+            {% if item.status == 'Active' %}
+            <form method="post" action="{{ url_for('mark_returned', item_id=item.id) }}" class="mb-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+                <button type="submit" class="btn btn-outline-navy btn-sm w-100">
+                    <i class="bi bi-check2-circle me-1"></i>Mark as Returned
+                </button>
+            </form>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('edit_report', item_id=item.id) }}"
+                   class="btn btn-outline-secondary btn-sm flex-fill">
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                </a>
+                <form method="post" action="{{ url_for('delete_report', item_id=item.id) }}"
+                      class="flex-fill"
+                      onsubmit="return confirm('Delete this report permanently? This cannot be undone.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>

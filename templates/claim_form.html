@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Claim item &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+
+                <div class="card auth-card border-0 shadow-lg">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="text-center mb-4">
+                            <div class="auth-icon mx-auto"><i class="bi bi-hand-index-thumb"></i></div>
+                            <h1 class="h3 fw-bold mt-3 mb-1">Claim this item</h1>
+                            <p class="text-muted mb-2">
+                                Tell {{ item.author.name }} why this item belongs to you.
+                            </p>
+                            <span class="badge text-bg-warning">Phase {{ PHASE }} &middot; Claim request</span>
+                        </div>
+
+                        <!-- Short summary of the report being claimed -->
+                        <div class="card border-0 bg-light mb-4">
+                            <div class="card-body p-3 d-flex flex-column flex-sm-row gap-3 align-items-sm-center">
+                                {% if item.image_url %}
+                                <img src="{{ item.image_url }}" class="claim-thumb"
+                                     alt="Photograph of {{ item.title }}">
+                                {% else %}
+                                <div class="claim-thumb claim-thumb-empty" role="img"
+                                     aria-label="No photograph for {{ item.title }}">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h2 class="h6 fw-bold mb-1">{{ item.title }}</h2>
+                                    <p class="small text-muted mb-1">
+                                        <span class="badge text-bg-secondary me-1">{{ item.category }}</span>
+                                        <i class="bi bi-geo-alt me-1"></i>{{ item.location }}
+                                    </p>
+                                    <p class="small text-muted mb-0">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ item.date_lost_found.strftime('%d %b %Y') }}
+                                        &middot; reported by {{ item.author.name }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post" action="{{ url_for('claim_report', item_id=item.id) }}" novalidate>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            <div class="mb-4">
+                                <label for="message" class="form-label">
+                                    Why is this item yours? <span class="required-mark" aria-hidden="true">*</span>
+                                </label>
+                                <textarea class="form-control" id="message" name="message" rows="5"
+                                          maxlength="500" required
+                                          placeholder="Mention details only the owner would know, for example a sticker, a scratch or what is inside.">{{ form.get('message', '') }}</textarea>
+                                <div class="form-text">
+                                    Between 10 and 500 characters. The report owner reads this before deciding.
+                                </div>
+                            </div>
+
+                            <div class="form-actions form-actions-row">
+                                <button type="submit" class="btn btn-accent btn-lg flex-fill">
+                                    <i class="bi bi-send me-2"></i>Send claim request
+                                </button>
+                                <a href="{{ url_for('browse') }}" class="btn btn-outline-navy btn-lg flex-fill">
+                                    <i class="bi bi-x-lg me-1"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+
+                        <div class="phase-note mt-4">
+                            <i class="bi bi-info-circle me-1"></i>
+                            You can claim an item once. If your claim is rejected, the owner keeps the
+                            item available for other students.
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Browse reports &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1"><i class="bi bi-grid me-2"></i>Browse reports</h1>
+                <p class="text-muted mb-0">
+                    Search lost and found reports from students across campus.
+                </p>
+            </div>
+            <a href="{{ url_for('report') }}" class="btn btn-accent btn-lg px-4">
+                <i class="bi bi-plus-circle me-2"></i>Report an item
+            </a>
+        </div>
+
+        <!-- Search + filters (GET so the URL can be shared and refreshed) -->
+        <form method="get" action="{{ url_for('browse') }}" class="card filter-bar border-0 shadow-sm mb-4">
+            <div class="card-body p-3 p-md-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label for="q" class="form-label small fw-semibold mb-1">Search</label>
+                        <input type="search" class="form-control" id="q" name="q"
+                               value="{{ filters.q }}"
+                               placeholder="Item name, description or location">
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <label for="report_type" class="form-label small fw-semibold mb-1">Type</label>
+                        <select class="form-select" id="report_type" name="report_type">
+                            <option value="All" {% if filters.report_type == 'All' %}selected{% endif %}>All</option>
+                            {% for type in report_types %}
+                            <option value="{{ type }}" {% if filters.report_type == type %}selected{% endif %}>{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <label for="category" class="form-label small fw-semibold mb-1">Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="All" {% if filters.category == 'All' %}selected{% endif %}>All</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if filters.category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <label for="status" class="form-label small fw-semibold mb-1">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="All" {% if filters.status == 'All' %}selected{% endif %}>All</option>
+                            {% for state in statuses %}
+                            <option value="{{ state }}" {% if filters.status == state %}selected{% endif %}>{{ state }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-accent flex-grow-1">
+                            <i class="bi bi-search me-1"></i>Search
+                        </button>
+                        <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary" title="Clear filters">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <p class="small text-muted">
+            Showing <strong>{{ items|length }}</strong>
+            report{{ '' if items|length == 1 else 's' }}
+            {%- if filters.status == 'Active' %} that are still active{% elif filters.status == 'Returned' %} that were returned{% endif %}
+            {%- if filters.q %} matching &ldquo;{{ filters.q }}&rdquo;{% endif %}.
+        </p>
+
+        {% if items %}
+        <div class="row g-4">
+            {% for item in items %}
+            <div class="col-md-6 col-xl-4">
+                {% include "_report_card.html" %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card empty-state border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="feature-icon mx-auto"><i class="bi bi-search"></i></div>
+                {% if filters.q or filters.report_type != 'All' or filters.category != 'All' or filters.status != 'Active' %}
+                <h2 class="h5 fw-bold mt-3 mb-2">No reports match your search</h2>
+                <p class="text-muted mb-4">
+                    Try different words, or widen the type, category and status filters.
+                </p>
+                <a href="{{ url_for('browse') }}" class="btn btn-outline-navy px-4">
+                    <i class="bi bi-x-lg me-1"></i>Clear filters
+                </a>
+                {% else %}
+                <h2 class="h5 fw-bold mt-3 mb-2">No reports yet</h2>
+                <p class="text-muted mb-4">
+                    Nothing has been posted right now. Be the first &mdash; report a lost item
+                    or share something you found on campus.
+                </p>
+                <a href="{{ url_for('report') }}" class="btn btn-accent btn-lg px-4">
+                    <i class="bi bi-plus-circle me-2"></i>Report an item
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,7 @@
+# Student Lost and Found Portal - dependencies
+# Flask includes Jinja2 (templating) and Werkzeug (password hashing).
+Flask>=3.0,<4.0
+# SQLite storage, login sessions and CSRF protection.
+Flask-SQLAlchemy>=3.0,<4.0
+Flask-Login>=0.6.3,<0.7
+Flask-WTF>=1.2,<2.0

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}My reports &mdash; Student Lost & Found Portal{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-1"><i class="bi bi-journal-text me-2"></i>My reports</h1>
+                <p class="text-muted mb-0">
+                    Everything you have posted, {{ current_user.name }} &mdash;
+                    {{ current_user.reports|length }} report{{ '' if current_user.reports|length == 1 else 's' }} in total.
+                </p>
+            </div>
+            <a href="{{ url_for('report') }}" class="btn btn-accent btn-lg px-4">
+                <i class="bi bi-plus-circle me-2"></i>Report an item
+            </a>
+        </div>
+
+        <div class="mb-4 d-flex flex-wrap align-items-center gap-2">
+            <span class="badge text-bg-danger">
+                Lost: {{ current_user.reports | selectattr('report_type', 'equalto', 'Lost') | list | length }}
+            </span>
+            <span class="badge text-bg-success">
+                Found: {{ current_user.reports | selectattr('report_type', 'equalto', 'Found') | list | length }}
+            </span>
+            <span class="badge text-bg-primary">
+                Returned: {{ current_user.reports | selectattr('status', 'equalto', 'Returned') | list | length }}
+            </span>
+
+            {% if filters.report_type != 'All' or filters.status != 'All' or filters.q %}
+            <span class="badge text-bg-secondary">
+                Filtered{{ ': ' ~ filters.report_type if filters.report_type != 'All' else '' }}{{ ' · ' ~ filters.status if filters.status != 'All' else '' }}{{ ' · “' ~ filters.q ~ '”' if filters.q else '' }}
+            </span>
+            <a href="{{ url_for('my_reports') }}" class="small text-decoration-none">clear filter</a>
+            {% endif %}
+        </div>
+
+        {% if items %}
+        <div class="row g-4">
+            {% for item in items %}
+            <div class="col-md-6 col-xl-4">
+                {% include "_report_card.html" %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card empty-state border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="feature-icon mx-auto"><i class="bi bi-journal-x"></i></div>
+                {% if filters.report_type != 'All' or filters.status != 'All' or filters.q %}
+                <h2 class="h5 fw-bold mt-3 mb-2">Nothing here with that filter</h2>
+                <p class="text-muted mb-4">Try clearing the filter to see all of your reports.</p>
+                <a href="{{ url_for('my_reports') }}" class="btn btn-outline-navy px-4">
+                    <i class="bi bi-x-lg me-1"></i>Clear filter
+                </a>
+                {% else %}
+                <h2 class="h5 fw-bold mt-3 mb-2">You have not posted anything yet</h2>
+                <p class="text-muted mb-4">
+                    When you report a lost item or post something you found, it will show up here
+                    so you can keep track of it.
+                </p>
+                <a href="{{ url_for('report') }}" class="btn btn-accent btn-lg px-4">
+                    <i class="bi bi-plus-circle me-2"></i>Create your first report
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}
